@@ -1,8 +1,7 @@
 @startuml Technology Architecture
 !theme plain
-skinparam shadowing false
-skinparam defaultFontName Arial
-skinparam defaultFontSize 12
+skinparam componentStyle rectangle
+skinparam linetype ortho
 
 title TOGAF Technology Architecture - Single-SPA Technology Stack and Build Architecture
 

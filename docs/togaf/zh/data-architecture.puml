@@ -1,8 +1,7 @@
 @startuml 数据架构图
 !theme plain
-skinparam shadowing false
-skinparam defaultFontName "Microsoft YaHei"
-skinparam defaultFontSize 12
+skinparam componentStyle rectangle
+skinparam linetype ortho
 
 title TOGAF 数据架构图 - Single-SPA 数据模型和状态流转
 

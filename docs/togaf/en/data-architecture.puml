@@ -1,8 +1,7 @@
 @startuml Data Architecture
 !theme plain
-skinparam shadowing false
-skinparam defaultFontName Arial
-skinparam defaultFontSize 12
+skinparam componentStyle rectangle
+skinparam linetype ortho
 
 title TOGAF Data Architecture - Single-SPA Data Model and State Flow
 

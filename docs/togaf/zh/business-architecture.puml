@@ -1,8 +1,7 @@
 @startuml 业务架构图
 !theme plain
-skinparam shadowing false
-skinparam defaultFontName "Microsoft YaHei"
-skinparam defaultFontSize 12
+skinparam componentStyle rectangle
+skinparam linetype ortho
 
 title TOGAF 业务架构图 - Single-SPA 微前端框架
 

@@ -1,8 +1,7 @@
 @startuml Business Architecture
 !theme plain
-skinparam shadowing false
-skinparam defaultFontName Arial
-skinparam defaultFontSize 12
+skinparam componentStyle rectangle
+skinparam linetype ortho
 
 title TOGAF Business Architecture - Single-SPA Micro Frontend Framework
 
