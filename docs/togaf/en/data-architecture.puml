@@ -1,0 +1,238 @@
+@startuml Data Architecture
+!theme plain
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title TOGAF Data Architecture - Single-SPA Data Model and State Flow
+
+' Application State Data Model - Using Components to Represent States
+package "Application State Model (Application State Model)" {
+  component [Initial State] as InitialState
+  component [NOT_LOADED] as NotLoaded
+  component [LOADING_SOURCE_CODE] as Loading
+  component [LOAD_ERROR] as LoadError
+  component [NOT_BOOTSTRAPPED] as NotBootstrapped
+  component [BOOTSTRAPPING] as Bootstrapping
+  component [NOT_MOUNTED] as NotMounted
+  component [MOUNTING] as Mounting
+  component [MOUNTED] as Mounted
+  component [UPDATING] as Updating
+  component [UNMOUNTING] as Unmounting
+  component [UNLOADING] as Unloading
+  component [SKIP_BECAUSE_BROKEN] as Broken
+}
+
+' State Transition Flow
+InitialState --> NotLoaded : application registration
+NotLoaded --> Loading : registerApplication()
+Loading --> NotBootstrapped : load successful
+Loading --> LoadError : load failed
+LoadError --> Loading : retry after 200ms
+NotBootstrapped --> Bootstrapping : route activated
+Bootstrapping --> NotMounted : bootstrap complete
+NotMounted --> Mounting : start mounting
+Mounting --> Mounted : mount complete
+Mounted --> Updating : Parcel update
+Mounted --> Unmounting : route deactivated
+Updating --> Mounted : update complete
+Unmounting --> NotMounted : unmount complete
+NotMounted --> Unloading : unloadApplication()
+Unloading --> NotLoaded : unload complete
+LoadError --> Broken : exceeded retry count
+
+' Application Data Structure
+package "Application Data Object (App Object)" {
+  component [App Object] as AppObjectComp
+}
+
+note right of AppObjectComp
+  Properties:
+  - name: String
+  - loadApp: Function
+  - activeWhen: Function
+  - customProps: Object
+  - status: String
+  - loadPromise: Promise
+  - bootstrapPromise: Promise
+  - mountPromise: Promise
+  - unmountPromise: Promise
+  - loadErrorTime: Number
+  - lifecycles: LifeCycles
+end note
+
+' Application Changes Data Structure
+package "Application Changes Data (App Changes)" {
+  component [App Changes] as AppChangesComp
+}
+
+note right of AppChangesComp
+  Properties:
+  - appsToUnload: Array
+  - appsToUnmount: Array
+  - appsToLoad: Array
+  - appsToMount: Array
+end note
+
+' Event Data Structure
+package "Navigation Events Data (Navigation Events)" {
+  component [Navigation Event] as NavigationEventComp
+  component [PopState Event] as PopStateEventComp
+  component [HashChange Event] as HashChangeEventComp
+}
+
+note right of NavigationEventComp
+  Properties:
+  - type: String
+  - url: String
+  - eventArguments: Object
+  - silentNavigation: Boolean
+end note
+
+note right of PopStateEventComp
+  Properties:
+  - state: State
+  - url: String
+end note
+
+note right of HashChangeEventComp
+  Properties:
+  - oldURL: String
+  - newURL: String
+  - hash: String
+end note
+
+' Lifecycle Props Data
+package "Lifecycle Props (Lifecycle Props)" {
+  component [Lifecycle Props] as LifecyclePropsComp
+}
+
+note right of LifecyclePropsComp
+  Properties:
+  - name: String
+  - mountParcel: Function
+  - appName: String
+  - singleSpa: Function
+  - customProps: Object
+end note
+
+' Parcel Data Structure
+package "Parcel Data Object (Parcel Object)" {
+  component [Parcel Object] as ParcelObjectComp
+}
+
+note right of ParcelObjectComp
+  Properties:
+  - name: String
+  - loadPromise: Promise
+  - bootstrapPromise: Promise
+  - mountPromise: Promise
+  - unmountPromise: Promise
+  - unmountThisParcel: Function
+  - updatePromise: Promise
+  - status: String
+end note
+
+' Error Data Structure
+package "Error Data (Error Data)" {
+  component [App Error] as AppErrorComp
+}
+
+note right of AppErrorComp
+  Properties:
+  - err: Error
+  - app: Object
+  - status: String
+  - message: String
+  - trace: Stack
+end note
+
+' Data Flow Relationships
+AppObjectComp --> AppChangesComp : constitutes
+AppChangesComp --> NavigationEventComp : triggers
+NavigationEventComp --> NotLoaded : may trigger state change
+NavigationEventComp --> Mounted : may trigger state change
+AppObjectComp --> LifecyclePropsComp : passes to lifecycle
+AppObjectComp --> ParcelObjectComp : can create Parcel
+ParcelObjectComp --> LifecyclePropsComp : uses
+AppObjectComp --> AppErrorComp : may produce
+ParcelObjectComp --> AppErrorComp : may produce
+
+' Data Storage Locations
+package "Data Storage" {
+  component [Application Registry\napps array] as AppsRegistry
+  component [Current URL\ncurrentUrl] as CurrentURL
+  component [Error Handlers List\nerrorHandlers array] as ErrorHandlers
+  component [Unload Info Map\nappUnloadInfo object] as UnloadInfo
+}
+
+note right of AppsRegistry
+  Global array storing all registered applications
+  Location: src/applications/apps.js
+end note
+
+note right of CurrentURL
+  Stores current browser URL
+  Location: src/navigation/reroute.js
+end note
+
+note right of ErrorHandlers
+  Stores global error handlers
+  Location: src/applications/app-errors.js
+end note
+
+note right of UnloadInfo
+  Stores application unload configuration info
+  Location: src/lifecycles/unload.js
+end note
+
+AppsRegistry --> AppObjectComp : stores
+CurrentURL --> NavigationEventComp : affects
+ErrorHandlers --> AppErrorComp : handles
+UnloadInfo --> AppObjectComp : configures
+
+' Data Flow Scenarios
+package "Data Flow Scenarios" {
+  component [Scenario 1: Application Registration] as Scenario1
+  component [Scenario 2: Route Change] as Scenario2
+  component [Scenario 3: Lifecycle Execution] as Scenario3
+  component [Scenario 4: Error Handling] as Scenario4
+}
+
+Scenario1 --> AppsRegistry : writes AppObject
+Scenario1 --> NotLoaded : status=NOT_LOADED
+Scenario2 --> CurrentURL : updates
+Scenario2 --> AppsRegistry : queries
+Scenario2 --> AppChangesComp : generates change list
+Scenario3 --> LifecyclePropsComp : prepares props
+Scenario3 --> AppObjectComp : updates status
+Scenario3 --> AppsRegistry : saves status
+Scenario4 --> AppErrorComp : catches error
+Scenario4 --> ErrorHandlers : passes
+Scenario4 --> AppObjectComp : updates status
+
+note bottom of NotLoaded
+  State Descriptions:
+  - NOT_LOADED: Initial state, not loaded
+  - LOADING: Loading source code
+  - NOT_BOOTSTRAPPED: Loaded, not bootstrapped
+  - BOOTSTRAPPING: Bootstrapping
+  - NOT_MOUNTED: Bootstrapped, not mounted
+  - MOUNTING: Mounting
+  - MOUNTED: Mounted (active state)
+  - UPDATING: Updating (Parcel only)
+  - UNMOUNTING: Unmounting
+  - UNLOADING: Unloading application
+  - LOAD_ERROR: Load error
+  - SKIP_BECAUSE_BROKEN: Skip (broken)
+end note
+
+note bottom of AppsRegistry
+  Data Persistence:
+  - Application data stored in memory
+  - No persistent storage support
+  - Re-registration required after page refresh
+end note
+
+@enduml
+

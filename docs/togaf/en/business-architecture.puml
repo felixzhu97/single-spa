@@ -1,0 +1,98 @@
+@startuml Business Architecture
+!theme plain
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title TOGAF Business Architecture - Single-SPA Micro Frontend Framework
+
+' Business Goal Layer
+package "Business Goal Layer" {
+  component [Business Goal: Provide Micro Frontend Framework Solution] as Goal
+  component [Core Value Proposition] as ValueProp
+  component [Strategic Direction] as Strategy
+}
+
+' Business Process Layer
+package "Business Process Layer" {
+  component [Application Registration Process] as RegisterProcess
+  component [Routing Management Process] as RouteProcess
+  component [Lifecycle Management Process] as LifecycleProcess
+  component [Application Coordination Process] as CoordinateProcess
+}
+
+' Business Capability Layer
+package "Business Capability Layer" {
+  component [Application Registration Capability] as RegisterCapability
+  component [Routing Navigation Capability] as NavigationCapability
+  component [Lifecycle Management Capability] as LifecycleCapability
+  component [Multi-Framework Support Capability] as MultiFrameworkCapability
+  component [Lazy Loading Capability] as LazyLoadCapability
+  component [Application Isolation Capability] as IsolationCapability
+}
+
+' Stakeholder Layer
+package "Stakeholder Layer" {
+  actor "Frontend Developers" as Developer
+  actor "Enterprise Architects" as Architect
+  actor "End Users" as EndUser
+  actor "Open Source Community" as Community
+}
+
+' Business Service Layer
+package "Business Service Layer" {
+  component [Application Registration Service] as RegisterService
+  component [Routing Coordination Service] as RoutingService
+  component [State Management Service] as StateService
+  component [Error Handling Service] as ErrorService
+  component [Development Tools Service] as DevToolsService
+}
+
+' Relationship Definitions
+Goal --> ValueProp : implements
+Goal --> Strategy : guides
+
+Strategy --> RegisterProcess : supports
+Strategy --> RouteProcess : supports
+Strategy --> LifecycleProcess : supports
+Strategy --> CoordinateProcess : supports
+
+RegisterProcess --> RegisterCapability : requires
+RouteProcess --> NavigationCapability : requires
+LifecycleProcess --> LifecycleCapability : requires
+CoordinateProcess --> MultiFrameworkCapability : requires
+CoordinateProcess --> LazyLoadCapability : requires
+CoordinateProcess --> IsolationCapability : requires
+
+RegisterCapability --> RegisterService : through
+NavigationCapability --> RoutingService : through
+LifecycleCapability --> StateService : through
+MultiFrameworkCapability --> RegisterService : through
+LazyLoadCapability --> RoutingService : through
+IsolationCapability --> ErrorService : through
+
+Developer --> RegisterService : uses
+Developer --> RoutingService : uses
+Developer --> DevToolsService : uses
+Architect --> StateService : uses
+Architect --> ErrorService : uses
+EndUser --> RoutingService : benefits
+Community --> DevToolsService : contributes
+
+note right of Goal
+  Core Business Goals:
+  - Build frontend microservices architecture
+  - Support multi-framework coexistence
+  - Provide unified routing and lifecycle management
+end note
+
+note right of ValueProp
+  Core Values:
+  - Progressive migration
+  - Independent deployment
+  - Technology stack freedom
+  - Team autonomy
+end note
+
+@enduml
+

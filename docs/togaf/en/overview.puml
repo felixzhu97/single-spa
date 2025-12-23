@@ -1,0 +1,151 @@
+@startuml Architecture Overview
+!theme plain
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title TOGAF Architecture Overview - Single-SPA Four-Layer Architecture Relationships
+
+' Business Architecture Layer
+package "Business Architecture Layer (Business Architecture)" {
+  component [Business Goals] as BizGoal
+  component [Business Processes] as BizProcess
+  component [Business Capabilities] as BizCapability
+  component [Business Services] as BizService
+  component [Stakeholders] as Stakeholders
+}
+
+' Application Architecture Layer
+package "Application Architecture Layer (Application Architecture)" {
+  component [Application Interfaces] as AppInterface
+  component [Core Application Modules] as CoreApp
+  component [Lifecycle Management] as LifecycleMgr
+  component [State Management] as StateMgr
+  component [Extended Features] as FeatureExt
+  component [Utility Support] as Utilities
+}
+
+' Data Architecture Layer
+package "Data Architecture Layer (Data Architecture)" {
+  component [Application State Model] as StateModel
+  component [Application Data Objects] as AppData
+  component [Event Data] as EventData
+  component [Data Storage] as DataStore
+  component [Data Flow] as DataFlow
+}
+
+' Technology Architecture Layer
+package "Technology Architecture Layer (Technology Architecture)" {
+  component [Runtime Environment] as RuntimeEnv
+  component [Programming Language] as Language
+  component [Core Framework] as CoreFramework
+  component [Build Tools] as BuildTools
+  component [Development Tools] as DevTools
+  component [Browser Compatibility] as BrowserCompat
+}
+
+' Cross-layer Relationships: Business to Application
+BizService --> AppInterface : implements through API
+BizCapability --> CoreApp : maps to application modules
+BizProcess --> LifecycleMgr : depends on lifecycle
+BizProcess --> StateMgr : requires state management
+
+' Cross-layer Relationships: Application to Data
+AppInterface --> AppData : operates
+CoreApp --> StateModel : manages state
+LifecycleMgr --> AppData : processes data
+StateMgr --> DataStore : stores data
+FeatureExt --> EventData : generates events
+
+' Cross-layer Relationships: Data to Technology
+StateModel --> Language : uses language features
+AppData --> RuntimeEnv : executes at runtime
+DataStore --> RuntimeEnv : stores at runtime
+DataFlow --> RuntimeEnv : flows at runtime
+
+' Cross-layer Relationships: Application to Technology
+CoreApp --> CoreFramework : implements
+AppInterface --> Language : defined using language
+LifecycleMgr --> RuntimeEnv : depends on runtime
+StateMgr --> RuntimeEnv : depends on runtime
+Utilities --> BuildTools : builds through tools
+
+' Cross-layer Relationships: Business to Technology
+BizService --> CoreFramework : provided through framework
+BizCapability --> RuntimeEnv : implements at runtime
+BizProcess --> BuildTools : deploys through build
+
+' Cross-layer Relationships: Business to Data
+BizProcess --> StateModel : generates state changes
+BizService --> DataFlow : triggers data flow
+Stakeholders --> DataStore : accesses data
+
+' Architecture Principle Annotations
+note top of BizGoal
+  TOGAF Business Architecture Principles:
+  - Business-driven technology decisions
+  - Focus on business value delivery
+  - Support business capability evolution
+end note
+
+note right of CoreApp
+  TOGAF Application Architecture Principles:
+  - Modularity and reusability
+  - Clear interface definitions
+  - Loose coupling, high cohesion
+end note
+
+note bottom of StateModel
+  TOGAF Data Architecture Principles:
+  - Data consistency guarantee
+  - Clear state management
+  - Traceable data flow
+end note
+
+note left of CoreFramework
+  TOGAF Technology Architecture Principles:
+  - Technology standardization
+  - Platform portability
+  - Automated build and deployment
+end note
+
+' Architecture Layer Descriptions
+package "Architecture Layer Descriptions" {
+  component [Layer 1: Business Architecture] as Layer1
+  component [Layer 2: Application Architecture] as Layer2
+  component [Layer 3: Data Architecture] as Layer3
+  component [Layer 4: Technology Architecture] as Layer4
+}
+
+note right of Layer1
+  Describes business goals, processes, and capabilities
+  Focuses on business value and stakeholder needs
+end note
+
+note right of Layer2
+  Describes application components and module structure
+  Focuses on application functionality and interface design
+end note
+
+note right of Layer3
+  Describes data models and state management
+  Focuses on data flow and storage
+end note
+
+note right of Layer4
+  Describes technology stack and toolchain
+  Focuses on implementation technology and deployment environment
+end note
+
+' Architecture Relationship Matrix
+component [Architecture Relationship Matrix] as RelationshipMatrix
+
+note right of RelationshipMatrix
+  - Implementation relationship: Business → Application → Technology
+  - Dependency relationship: Application → Data → Technology
+  - Mapping relationship: Business capability → Application function
+  - Support relationship: Technology → Data → Application → Business
+end note
+
+@enduml
+

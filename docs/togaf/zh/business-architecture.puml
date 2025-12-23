@@ -1,0 +1,97 @@
+@startuml 业务架构图
+!theme plain
+skinparam shadowing false
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+
+title TOGAF 业务架构图 - Single-SPA 微前端框架
+
+' 业务目标层
+package "业务目标层" {
+  component [业务目标: 提供微前端框架解决方案] as Goal
+  component [核心价值主张] as ValueProp
+  component [战略方向] as Strategy
+}
+
+' 业务流程层
+package "业务流程层" {
+  component [应用注册流程] as RegisterProcess
+  component [路由管理流程] as RouteProcess
+  component [生命周期管理流程] as LifecycleProcess
+  component [应用协调流程] as CoordinateProcess
+}
+
+' 业务能力层
+package "业务能力层" {
+  component [应用注册能力] as RegisterCapability
+  component [路由导航能力] as NavigationCapability
+  component [生命周期管理能力] as LifecycleCapability
+  component [多框架支持能力] as MultiFrameworkCapability
+  component [懒加载能力] as LazyLoadCapability
+  component [应用隔离能力] as IsolationCapability
+}
+
+' 利益相关者层
+package "利益相关者层" {
+  actor "前端开发者" as Developer
+  actor "企业架构师" as Architect
+  actor "最终用户" as EndUser
+  actor "开源社区" as Community
+}
+
+' 业务服务层
+package "业务服务层" {
+  component [应用注册服务] as RegisterService
+  component [路由协调服务] as RoutingService
+  component [状态管理服务] as StateService
+  component [错误处理服务] as ErrorService
+  component [开发工具服务] as DevToolsService
+}
+
+' 关系定义
+Goal --> ValueProp : 实现
+Goal --> Strategy : 指导
+
+Strategy --> RegisterProcess : 支持
+Strategy --> RouteProcess : 支持
+Strategy --> LifecycleProcess : 支持
+Strategy --> CoordinateProcess : 支持
+
+RegisterProcess --> RegisterCapability : 需要
+RouteProcess --> NavigationCapability : 需要
+LifecycleProcess --> LifecycleCapability : 需要
+CoordinateProcess --> MultiFrameworkCapability : 需要
+CoordinateProcess --> LazyLoadCapability : 需要
+CoordinateProcess --> IsolationCapability : 需要
+
+RegisterCapability --> RegisterService : 通过
+NavigationCapability --> RoutingService : 通过
+LifecycleCapability --> StateService : 通过
+MultiFrameworkCapability --> RegisterService : 通过
+LazyLoadCapability --> RoutingService : 通过
+IsolationCapability --> ErrorService : 通过
+
+Developer --> RegisterService : 使用
+Developer --> RoutingService : 使用
+Developer --> DevToolsService : 使用
+Architect --> StateService : 使用
+Architect --> ErrorService : 使用
+EndUser --> RoutingService : 受益
+Community --> DevToolsService : 贡献
+
+note right of Goal
+  核心业务目标：
+  - 构建前端微服务架构
+  - 支持多框架共存
+  - 提供统一的路由和生命周期管理
+end note
+
+note right of ValueProp
+  核心价值：
+  - 渐进式迁移
+  - 独立部署
+  - 技术栈自由
+  - 团队自治
+end note
+
+@enduml

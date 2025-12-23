@@ -1,0 +1,220 @@
+@startuml 技术架构图
+!theme plain
+skinparam shadowing false
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+
+title TOGAF 技术架构图 - Single-SPA 技术栈和构建架构
+
+' 运行时环境层
+package "运行时环境层 (Runtime Environment)" {
+  node "浏览器环境" as BrowserEnv {
+    component [DOM API] as DOMAPI
+    component [History API] as HistoryAPI
+    component [Window Object] as WindowObj
+    component [Custom Events] as CustomEventsAPI
+    component [Promise API] as PromiseAPI
+    component [Performance API] as PerformanceAPI
+  }
+  
+  node "Node.js环境" as NodeEnv {
+    component [CommonJS] as CommonJS
+    component [Module System] as NodeModules
+  }
+}
+
+' 编程语言层
+package "编程语言层 (Language)" {
+  component [JavaScript ES2015+] as ES2015
+  component [ES Modules (ESM)] as ESM
+  component [CommonJS (CJS)] as CJS
+  component [TypeScript类型定义] as TypeScriptTypes
+}
+
+' 核心框架层
+package "核心框架层 (Core Framework)" {
+  component [Single-SPA核心] as CoreFramework {
+    note right
+      源代码位置: src/
+      - 应用管理模块
+      - 生命周期管理
+      - 路由协调
+      - Parcels支持
+    end note
+  }
+  
+  component [Single-SPA配置] as ConfigModule {
+    note right
+      根应用配置
+      应用注册和启动
+    end note
+  }
+}
+
+' 构建工具层
+package "构建工具层 (Build Tools)" {
+  component [Rollup] as Rollup {
+    component [Rollup配置\nrollup.config.js] as RollupConfig
+    component [Babel插件] as BabelPlugin
+    component [CommonJS插件] as CommonJSPlugin
+    component [Node Resolve插件] as NodeResolvePlugin
+    component [Replace插件] as ReplacePlugin
+    component [Terser插件] as TerserPlugin
+    component [Analyzer插件] as AnalyzerPlugin
+  }
+  
+  component [Babel] as Babel {
+    component [@babel/core] as BabelCore
+    component [@babel/preset-env] as BabelPreset
+    component [@babel/runtime] as BabelRuntime
+  }
+}
+
+' 开发工具层
+package "开发工具层 (Development Tools)" {
+  component [测试框架] as TestFramework {
+    component [Jest] as Jest
+    component [Jest Browser配置] as JestBrowser
+    component [Jest Node配置] as JestNode
+    component [Babel Jest] as BabelJest
+  }
+  
+  component [代码质量工具] as CodeQuality {
+    component [ESLint] as ESLint
+    component [Prettier] as Prettier
+    component [TSD类型检查] as TSD
+  }
+  
+  component [开发工具链] as DevTools {
+    component [Husky Git Hooks] as Husky
+    component [Concurrently并发工具] as Concurrently
+    component [Cross-env环境变量] as CrossEnv
+  }
+}
+
+' 包管理工具层
+package "包管理工具层 (Package Management)" {
+  component [PNPM] as PNPM
+  component [package.json] as PackageJSON
+  component [pnpm-lock.yaml] as LockFile
+}
+
+' 构建输出层
+package "构建输出层 (Build Output)" {
+  component [开发版本] as DevBuild {
+    component [ESM格式\nlib/es2015/esm/\nsingle-spa.dev.js] as DevESM
+    component [UMD格式\nlib/es2015/umd/\nsingle-spa.dev.cjs] as DevUMD
+  }
+  
+  component [生产版本] as ProdBuild {
+    component [ESM格式\nlib/es2015/esm/\nsingle-spa.min.js] as ProdESM
+    component [UMD格式\nlib/es2015/umd/\nsingle-spa.min.cjs] as ProdUMD
+  }
+  
+  component [类型定义] as TypeDefs {
+    component [single-spa.d.ts] as DTS
+    component [single-spa.d.cts] as DCTS
+  }
+}
+
+' 浏览器兼容性
+package "浏览器兼容性 (Browser Support)" {
+  component [浏览器兼容性] as BrowserCompat
+  component [IE 11+] as IE
+  component [Safari (最近4个主版本)] as Safari
+  component [Chrome (最近10个主版本)] as Chrome
+  component [Firefox (最近10个主版本)] as Firefox
+  component [Edge (最近4个主版本)] as Edge
+}
+
+' 技术栈关系
+BrowserEnv --> ES2015 : 执行
+NodeEnv --> ES2015 : 执行
+ES2015 --> CoreFramework : 实现
+ESM --> CoreFramework : 模块系统
+CJS --> CoreFramework : 模块系统
+TypeScriptTypes --> CoreFramework : 类型支持
+
+CoreFramework --> Rollup : 构建
+RollupConfig --> Rollup : 配置
+Babel --> Rollup : 转译
+BabelPlugin --> Babel : 集成
+CommonJSPlugin --> Rollup : 转换CJS
+NodeResolvePlugin --> Rollup : 解析模块
+ReplacePlugin --> Rollup : 替换变量
+TerserPlugin --> Rollup : 压缩代码
+AnalyzerPlugin --> Rollup : 分析包大小
+
+Rollup --> DevBuild : 生成
+Rollup --> ProdBuild : 生成
+Rollup --> TypeDefs : 复制
+
+CoreFramework --> TestFramework : 测试
+Jest --> JestBrowser : 浏览器测试
+Jest --> JestNode : Node测试
+BabelJest --> Jest : 转译测试代码
+
+CoreFramework --> CodeQuality : 代码检查
+ESLint --> CoreFramework : 代码规范
+Prettier --> CoreFramework : 代码格式化
+TSD --> TypeScriptTypes : 类型检查
+
+PNPM --> PackageJSON : 管理依赖
+PackageJSON --> LockFile : 锁定版本
+
+DevBuild --> BrowserEnv : 运行
+ProdBuild --> BrowserEnv : 运行
+TypeDefs --> BrowserEnv : 类型提示
+
+BrowserEnv --> BrowserCompat : 需要支持
+BrowserCompat --> IE : 支持
+BrowserCompat --> Safari : 支持
+BrowserCompat --> Chrome : 支持
+BrowserCompat --> Firefox : 支持
+BrowserCompat --> Edge : 支持
+
+' 构建流程
+package "构建流程 (Build Process)" {
+  component [开发构建] as DevBuildProcess
+  component [生产构建] as ProdBuildProcess
+  component [类型构建] as TypeBuildProcess
+}
+
+DevBuildProcess --> Babel : 转译
+DevBuildProcess --> Rollup : 打包
+DevBuildProcess --> DevESM : 输出ESM
+DevBuildProcess --> DevUMD : 输出UMD
+ProdBuildProcess --> Babel : 转译
+ProdBuildProcess --> Rollup : 打包
+ProdBuildProcess --> TerserPlugin : 压缩
+ProdBuildProcess --> ProdESM : 输出ESM
+ProdBuildProcess --> ProdUMD : 输出UMD
+TypeBuildProcess --> DTS : 输出.d.ts
+TypeBuildProcess --> DCTS : 输出.d.cts
+
+note right of Rollup
+  构建配置：
+  - 输入: src/single-spa.js
+  - 输出格式: ESM + UMD
+  - 目标环境: ES2015
+  - 压缩: Terser (生产环境)
+end note
+
+note right of BrowserCompat
+  浏览器兼容性：
+  通过Babel转译和Polyfill
+  支持ES2015+特性
+  兼容旧版浏览器
+end note
+
+note bottom of PackageJSON
+  构建脚本：
+  - build: 完整构建
+  - build:prod: 生产构建
+  - build:dev: 开发构建
+  - build:types: 类型定义
+  - watch: 监听模式
+  - test: 运行测试
+end note
+
+@enduml

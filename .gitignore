@@ -10,3 +10,6 @@ yarn-error.log
 
 # This file is a copy of the single-spa.d.ts file. See scripts/copyTypes.
 typings/single-spa.d.cts
+
+# IDE files
+.idea

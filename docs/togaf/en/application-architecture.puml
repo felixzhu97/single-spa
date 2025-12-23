@@ -1,0 +1,165 @@
+@startuml Application Architecture
+!theme plain
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title TOGAF Application Architecture - Single-SPA Application Component Architecture
+
+' Application Interface Layer
+package "Application Interface Layer (Public API)" {
+  component [registerApplication] as RegisterAPI
+  component [start] as StartAPI
+  component [navigateToUrl] as NavigateAPI
+  component [getAppStatus] as StatusAPI
+  component [getMountedApps] as MountedAPI
+  component [mountRootParcel] as ParcelAPI
+  component [addErrorHandler] as ErrorHandlerAPI
+}
+
+' Core Application Layer
+package "Core Application Layer (Core Applications)" {
+  component [Application Manager\napplications/apps.js] as AppManager
+  component [Start Manager\nstart.js] as StartManager
+  component [Navigation Events Manager\nnavigation/navigation-events.js] as NavEvents
+  component [Route Coordinator\nnavigation/reroute.js] as Rerouter
+}
+
+' Lifecycle Management Layer
+package "Lifecycle Management Layer (Lifecycle Management)" {
+  component [Load Module\nlifecycles/load.js] as LoadModule
+  component [Bootstrap Module\nlifecycles/bootstrap.js] as BootstrapModule
+  component [Mount Module\nlifecycles/mount.js] as MountModule
+  component [Unmount Module\nlifecycles/unmount.js] as UnmountModule
+  component [Unload Module\nlifecycles/unload.js] as UnloadModule
+  component [Update Module\nlifecycles/update.js] as UpdateModule
+  component [Lifecycle Helpers\nlifecycles/lifecycle.helpers.js] as LifecycleHelpers
+  component [Property Helpers\nlifecycles/prop.helpers.js] as PropHelpers
+}
+
+' Application State Management Layer
+package "Application State Management Layer (State Management)" {
+  component [Application State Definition\napplications/app.helpers.js] as AppStateDef
+  component [State Transition Logic\napplications/apps.js] as StateTransition
+  component [Timeout Manager\napplications/timeouts.js] as TimeoutManager
+  component [Error Handler\napplications/app-errors.js] as ErrorHandler
+}
+
+' Extended Features Layer
+package "Extended Features Layer (Extended Features)" {
+  component [Parcel Manager\nparcels/mount-parcel.js] as ParcelManager
+  component [DevTools\ndevtools/devtools.js] as DevTools
+  component [Profiler\ndevtools/profiler.js] as Profiler
+  component [Profiler API\ndevtools/profiler-api.js] as ProfilerAPI
+  component [jQuery Support\njquery-support.js] as jQuerySupport
+}
+
+' Utility Support Layer
+package "Utility Support Layer (Utilities)" {
+  component [Runtime Environment Detection\nutils/runtime-environment.js] as RuntimeEnv
+  component [Object Assignment Utility\nutils/assign.js] as AssignUtil
+  component [Find Utility\nutils/find.js] as FindUtil
+}
+
+' External Dependencies Layer
+package "External Dependencies Layer (External Dependencies)" {
+  component [Browser API] as BrowserAPI
+  component [History API] as HistoryAPI
+  component [Custom Events] as CustomEvents
+}
+
+' Relationships: API to Core Applications
+RegisterAPI --> AppManager : calls
+StartAPI --> StartManager : calls
+NavigateAPI --> NavEvents : calls
+StatusAPI --> AppManager : calls
+MountedAPI --> AppManager : calls
+ParcelAPI --> ParcelManager : calls
+ErrorHandlerAPI --> ErrorHandler : calls
+
+' Core Application Layer Internal Relationships
+StartManager --> Rerouter : triggers
+StartManager --> NavEvents : initializes
+NavEvents --> Rerouter : triggers reroute
+Rerouter --> AppManager : queries app changes
+
+' Lifecycle Management Relationships
+Rerouter --> LoadModule : calls
+Rerouter --> BootstrapModule : calls
+Rerouter --> MountModule : calls
+Rerouter --> UnmountModule : calls
+Rerouter --> UnloadModule : calls
+AppManager --> StateTransition : executes
+StateTransition --> LifecycleHelpers : uses
+
+LoadModule --> PropHelpers : uses
+BootstrapModule --> PropHelpers : uses
+MountModule --> PropHelpers : uses
+UnmountModule --> PropHelpers : uses
+UpdateModule --> PropHelpers : uses
+
+' State Management Relationships
+AppManager --> AppStateDef : uses
+StateTransition --> AppStateDef : uses
+AppManager --> TimeoutManager : uses
+Rerouter --> ErrorHandler : calls
+
+' Extended Features Relationships
+ParcelManager --> LoadModule : reuses
+ParcelManager --> BootstrapModule : reuses
+ParcelManager --> MountModule : reuses
+ParcelManager --> UnmountModule : reuses
+DevTools --> AppManager : monitors
+Profiler --> Rerouter : monitors
+
+' Utility Support Relationships
+StartManager --> RuntimeEnv : uses
+AppManager --> AssignUtil : uses
+AppManager --> FindUtil : uses
+NavEvents --> RuntimeEnv : uses
+
+' External Dependencies Relationships
+NavEvents --> BrowserAPI : uses
+NavEvents --> HistoryAPI : uses
+NavEvents --> CustomEvents : uses
+Rerouter --> BrowserAPI : uses
+
+note right of AppManager
+  Core Responsibilities:
+  - Application registration and deregistration
+  - Application state management
+  - Application change detection
+  - Application status queries
+end note
+
+note right of Rerouter
+  Core Responsibilities:
+  - Route change detection
+  - Application lifecycle coordination
+  - Application mount/unmount scheduling
+  - Event handling coordination
+end note
+
+note bottom of LoadModule
+  Lifecycle Stages:
+  NOT_LOADED → 
+  LOADING_SOURCE_CODE → 
+  NOT_BOOTSTRAPPED
+end note
+
+note bottom of BootstrapModule
+  Lifecycle Stages:
+  NOT_BOOTSTRAPPED → 
+  BOOTSTRAPPING → 
+  NOT_MOUNTED
+end note
+
+note bottom of MountModule
+  Lifecycle Stages:
+  NOT_MOUNTED → 
+  MOUNTING → 
+  MOUNTED
+end note
+
+@enduml
+

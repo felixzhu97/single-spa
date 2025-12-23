@@ -1,0 +1,237 @@
+@startuml 数据架构图
+!theme plain
+skinparam shadowing false
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+
+title TOGAF 数据架构图 - Single-SPA 数据模型和状态流转
+
+' 应用状态数据模型 - 使用组件表示状态
+package "应用状态模型 (Application State Model)" {
+  component [初始状态] as InitialState
+  component [NOT_LOADED] as NotLoaded
+  component [LOADING_SOURCE_CODE] as Loading
+  component [LOAD_ERROR] as LoadError
+  component [NOT_BOOTSTRAPPED] as NotBootstrapped
+  component [BOOTSTRAPPING] as Bootstrapping
+  component [NOT_MOUNTED] as NotMounted
+  component [MOUNTING] as Mounting
+  component [MOUNTED] as Mounted
+  component [UPDATING] as Updating
+  component [UNMOUNTING] as Unmounting
+  component [UNLOADING] as Unloading
+  component [SKIP_BECAUSE_BROKEN] as Broken
+}
+
+' 状态转换流程
+InitialState --> NotLoaded : 应用注册
+NotLoaded --> Loading : registerApplication()
+Loading --> NotBootstrapped : 加载成功
+Loading --> LoadError : 加载失败
+LoadError --> Loading : 200ms后重试
+NotBootstrapped --> Bootstrapping : 路由激活
+Bootstrapping --> NotMounted : 引导完成
+NotMounted --> Mounting : 开始挂载
+Mounting --> Mounted : 挂载完成
+Mounted --> Updating : Parcel更新
+Mounted --> Unmounting : 路由失活
+Updating --> Mounted : 更新完成
+Unmounting --> NotMounted : 卸载完成
+NotMounted --> Unloading : unloadApplication()
+Unloading --> NotLoaded : 卸载完成
+LoadError --> Broken : 超过重试次数
+
+' 应用数据结构
+package "应用数据对象 (App Object)" {
+  component [App Object] as AppObjectComp
+}
+
+note right of AppObjectComp
+  属性:
+  - name: String
+  - loadApp: Function
+  - activeWhen: Function
+  - customProps: Object
+  - status: String
+  - loadPromise: Promise
+  - bootstrapPromise: Promise
+  - mountPromise: Promise
+  - unmountPromise: Promise
+  - loadErrorTime: Number
+  - lifecycles: LifeCycles
+end note
+
+' 应用变更数据结构
+package "应用变更数据 (App Changes)" {
+  component [App Changes] as AppChangesComp
+}
+
+note right of AppChangesComp
+  属性:
+  - appsToUnload: Array
+  - appsToUnmount: Array
+  - appsToLoad: Array
+  - appsToMount: Array
+end note
+
+' 事件数据结构
+package "导航事件数据 (Navigation Events)" {
+  component [Navigation Event] as NavigationEventComp
+  component [PopState Event] as PopStateEventComp
+  component [HashChange Event] as HashChangeEventComp
+}
+
+note right of NavigationEventComp
+  属性:
+  - type: String
+  - url: String
+  - eventArguments: Object
+  - silentNavigation: Boolean
+end note
+
+note right of PopStateEventComp
+  属性:
+  - state: State
+  - url: String
+end note
+
+note right of HashChangeEventComp
+  属性:
+  - oldURL: String
+  - newURL: String
+  - hash: String
+end note
+
+' 生命周期属性数据
+package "生命周期属性 (Lifecycle Props)" {
+  component [Lifecycle Props] as LifecyclePropsComp
+}
+
+note right of LifecyclePropsComp
+  属性:
+  - name: String
+  - mountParcel: Function
+  - appName: String
+  - singleSpa: Function
+  - customProps: Object
+end note
+
+' Parcel数据结构
+package "Parcel数据对象 (Parcel Object)" {
+  component [Parcel Object] as ParcelObjectComp
+}
+
+note right of ParcelObjectComp
+  属性:
+  - name: String
+  - loadPromise: Promise
+  - bootstrapPromise: Promise
+  - mountPromise: Promise
+  - unmountPromise: Promise
+  - unmountThisParcel: Function
+  - updatePromise: Promise
+  - status: String
+end note
+
+' 错误数据结构
+package "错误数据 (Error Data)" {
+  component [App Error] as AppErrorComp
+}
+
+note right of AppErrorComp
+  属性:
+  - err: Error
+  - app: Object
+  - status: String
+  - message: String
+  - trace: Stack
+end note
+
+' 数据流关系
+AppObjectComp --> AppChangesComp : 构成
+AppChangesComp --> NavigationEventComp : 触发
+NavigationEventComp --> NotLoaded : 可能触发状态变化
+NavigationEventComp --> Mounted : 可能触发状态变化
+AppObjectComp --> LifecyclePropsComp : 传递给生命周期
+AppObjectComp --> ParcelObjectComp : 可以创建Parcel
+ParcelObjectComp --> LifecyclePropsComp : 使用
+AppObjectComp --> AppErrorComp : 可能产生
+ParcelObjectComp --> AppErrorComp : 可能产生
+
+' 数据存储位置
+package "数据存储" {
+  component [应用注册表\napps数组] as AppsRegistry
+  component [当前URL\ncurrentUrl] as CurrentURL
+  component [错误处理器列表\nerrorHandlers数组] as ErrorHandlers
+  component [卸载信息映射\nappUnloadInfo对象] as UnloadInfo
+}
+
+note right of AppsRegistry
+  全局数组存储所有注册的应用
+  位置: src/applications/apps.js
+end note
+
+note right of CurrentURL
+  存储当前浏览器URL
+  位置: src/navigation/reroute.js
+end note
+
+note right of ErrorHandlers
+  存储全局错误处理器
+  位置: src/applications/app-errors.js
+end note
+
+note right of UnloadInfo
+  存储应用卸载配置信息
+  位置: src/lifecycles/unload.js
+end note
+
+AppsRegistry --> AppObjectComp : 存储
+CurrentURL --> NavigationEventComp : 影响
+ErrorHandlers --> AppErrorComp : 处理
+UnloadInfo --> AppObjectComp : 配置
+
+' 数据流转场景
+package "数据流转场景" {
+  component [场景1: 应用注册] as Scenario1
+  component [场景2: 路由变化] as Scenario2
+  component [场景3: 生命周期执行] as Scenario3
+  component [场景4: 错误处理] as Scenario4
+}
+
+Scenario1 --> AppsRegistry : 写入AppObject
+Scenario1 --> NotLoaded : 状态=NOT_LOADED
+Scenario2 --> CurrentURL : 更新
+Scenario2 --> AppsRegistry : 查询
+Scenario2 --> AppChangesComp : 生成变更列表
+Scenario3 --> LifecyclePropsComp : 准备属性
+Scenario3 --> AppObjectComp : 更新状态
+Scenario3 --> AppsRegistry : 保存状态
+Scenario4 --> AppErrorComp : 捕获错误
+Scenario4 --> ErrorHandlers : 传递
+Scenario4 --> AppObjectComp : 更新状态
+
+note bottom of NotLoaded
+  状态说明：
+  - NOT_LOADED: 初始状态，未加载
+  - LOADING: 正在加载源码
+  - NOT_BOOTSTRAPPED: 已加载，未引导
+  - BOOTSTRAPPING: 正在引导
+  - NOT_MOUNTED: 已引导，未挂载
+  - MOUNTING: 正在挂载
+  - MOUNTED: 已挂载（激活状态）
+  - UPDATING: 正在更新（仅Parcel）
+  - UNMOUNTING: 正在卸载
+  - UNLOADING: 正在卸载应用
+  - LOAD_ERROR: 加载错误
+  - SKIP_BECAUSE_BROKEN: 跳过（已损坏）
+end note
+
+note bottom of AppsRegistry
+  数据持久化：
+  - 应用数据存储在内存中
+  - 不支持持久化存储
+  - 页面刷新后需重新注册
+end note
+
+@enduml

@@ -1,0 +1,221 @@
+@startuml Technology Architecture
+!theme plain
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title TOGAF Technology Architecture - Single-SPA Technology Stack and Build Architecture
+
+' Runtime Environment Layer
+package "Runtime Environment Layer (Runtime Environment)" {
+  node "Browser Environment" as BrowserEnv {
+    component "DOM API" as DOMAPI
+    component "History API" as HistoryAPI
+    component "Window Object" as WindowObj
+    component "Custom Events" as CustomEventsAPI
+    component "Promise API" as PromiseAPI
+    component "Performance API" as PerformanceAPI
+  }
+  
+  node "Node.js Environment" as NodeEnv {
+    component "CommonJS" as CommonJS
+    component "Module System" as NodeModules
+  }
+}
+
+' Programming Language Layer
+package "Programming Language Layer (Language)" {
+  component "JavaScript ES2015+" as ES2015
+  component "ES Modules (ESM)" as ESM
+  component "CommonJS (CJS)" as CJS
+  component "TypeScript Type Definitions" as TypeScriptTypes
+}
+
+' Core Framework Layer
+package "Core Framework Layer (Core Framework)" {
+  component "Single-SPA Core" as CoreFramework {
+    note right
+      Source code location: src/
+      - Application management modules
+      - Lifecycle management
+      - Route coordination
+      - Parcels support
+    end note
+  }
+  
+  component "Single-SPA Config" as ConfigModule {
+    note right
+      Root application configuration
+      Application registration and startup
+    end note
+  }
+}
+
+' Build Tools Layer
+package "Build Tools Layer (Build Tools)" {
+  component "Rollup" as Rollup {
+    component "Rollup Config\nrollup.config.js" as RollupConfig
+    component "Babel Plugin" as BabelPlugin
+    component "CommonJS Plugin" as CommonJSPlugin
+    component "Node Resolve Plugin" as NodeResolvePlugin
+    component "Replace Plugin" as ReplacePlugin
+    component "Terser Plugin" as TerserPlugin
+    component "Analyzer Plugin" as AnalyzerPlugin
+  }
+  
+  component "Babel" as Babel {
+    component "@babel/core" as BabelCore
+    component "@babel/preset-env" as BabelPreset
+    component "@babel/runtime" as BabelRuntime
+  }
+}
+
+' Development Tools Layer
+package "Development Tools Layer (Development Tools)" {
+  component "Test Framework" as TestFramework {
+    component "Jest" as Jest
+    component "Jest Browser Config" as JestBrowser
+    component "Jest Node Config" as JestNode
+    component "Babel Jest" as BabelJest
+  }
+  
+  component "Code Quality Tools" as CodeQuality {
+    component "ESLint" as ESLint
+    component "Prettier" as Prettier
+    component "TSD Type Check" as TSD
+  }
+  
+  component "Development Toolchain" as DevTools {
+    component "Husky Git Hooks" as Husky
+    component "Concurrently Tool" as Concurrently
+    component "Cross-env Environment Variables" as CrossEnv
+  }
+}
+
+' Package Management Tools Layer
+package "Package Management Tools Layer (Package Management)" {
+  component "PNPM" as PNPM
+  component "package.json" as PackageJSON
+  component "pnpm-lock.yaml" as LockFile
+}
+
+' Build Output Layer
+package "Build Output Layer (Build Output)" {
+  component "Development Build" as DevBuild {
+    component "ESM Format\nlib/es2015/esm/\nsingle-spa.dev.js" as DevESM
+    component "UMD Format\nlib/es2015/umd/\nsingle-spa.dev.cjs" as DevUMD
+  }
+  
+  component "Production Build" as ProdBuild {
+    component "ESM Format\nlib/es2015/esm/\nsingle-spa.min.js" as ProdESM
+    component "UMD Format\nlib/es2015/umd/\nsingle-spa.min.cjs" as ProdUMD
+  }
+  
+  component "Type Definitions" as TypeDefs {
+    component "single-spa.d.ts" as DTS
+    component "single-spa.d.cts" as DCTS
+  }
+}
+
+' Browser Compatibility
+package "Browser Compatibility (Browser Support)" {
+  component "Browser Compatibility" as BrowserCompat
+  component "IE 11+" as IE
+  component "Safari (Last 4 Major Versions)" as Safari
+  component "Chrome (Last 10 Major Versions)" as Chrome
+  component "Firefox (Last 10 Major Versions)" as Firefox
+  component "Edge (Last 4 Major Versions)" as Edge
+}
+
+' Technology Stack Relationships
+BrowserEnv --> ES2015 : executes
+NodeEnv --> ES2015 : executes
+ES2015 --> CoreFramework : implements
+ESM --> CoreFramework : module system
+CJS --> CoreFramework : module system
+TypeScriptTypes --> CoreFramework : type support
+
+CoreFramework --> Rollup : builds
+RollupConfig --> Rollup : configures
+Babel --> Rollup : transpiles
+BabelPlugin --> Babel : integrates
+CommonJSPlugin --> Rollup : converts CJS
+NodeResolvePlugin --> Rollup : resolves modules
+ReplacePlugin --> Rollup : replaces variables
+TerserPlugin --> Rollup : minifies code
+AnalyzerPlugin --> Rollup : analyzes bundle size
+
+Rollup --> DevBuild : generates
+Rollup --> ProdBuild : generates
+Rollup --> TypeDefs : copies
+
+CoreFramework --> TestFramework : tests
+Jest --> JestBrowser : browser tests
+Jest --> JestNode : Node tests
+BabelJest --> Jest : transpiles test code
+
+CoreFramework --> CodeQuality : checks
+ESLint --> CoreFramework : code standards
+Prettier --> CoreFramework : code formatting
+TSD --> TypeScriptTypes : type checking
+
+PNPM --> PackageJSON : manages dependencies
+PackageJSON --> LockFile : locks versions
+
+DevBuild --> BrowserEnv : runs
+ProdBuild --> BrowserEnv : runs
+TypeDefs --> BrowserEnv : type hints
+
+BrowserEnv --> BrowserCompat : requires support
+BrowserCompat --> IE : supports
+BrowserCompat --> Safari : supports
+BrowserCompat --> Chrome : supports
+BrowserCompat --> Firefox : supports
+BrowserCompat --> Edge : supports
+
+' Build Process
+package "Build Process (Build Process)" {
+  component "Development Build" as DevBuildProcess
+  component "Production Build" as ProdBuildProcess
+  component "Type Build" as TypeBuildProcess
+}
+
+DevBuildProcess --> Babel : transpiles
+DevBuildProcess --> Rollup : bundles
+DevBuildProcess --> DevESM : outputs ESM
+DevBuildProcess --> DevUMD : outputs UMD
+ProdBuildProcess --> Babel : transpiles
+ProdBuildProcess --> Rollup : bundles
+ProdBuildProcess --> TerserPlugin : minifies
+ProdBuildProcess --> ProdESM : outputs ESM
+ProdBuildProcess --> ProdUMD : outputs UMD
+TypeBuildProcess --> DTS : outputs .d.ts
+TypeBuildProcess --> DCTS : outputs .d.cts
+
+note right of Rollup
+  Build Configuration:
+  - Input: src/single-spa.js
+  - Output formats: ESM + UMD
+  - Target environment: ES2015
+  - Minification: Terser (production)
+end note
+
+note right of BrowserCompat
+  Browser Compatibility:
+  Through Babel transpilation and Polyfill
+  Supports ES2015+ features
+  Compatible with older browsers
+end note
+
+note bottom of PackageJSON
+  Build Scripts:
+  - build: full build
+  - build:prod: production build
+  - build:dev: development build
+  - build:types: type definitions
+  - watch: watch mode
+  - test: run tests
+end note
+
+@enduml
+

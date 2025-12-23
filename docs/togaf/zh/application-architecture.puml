@@ -1,0 +1,164 @@
+@startuml 应用架构图
+!theme plain
+skinparam shadowing false
+skinparam defaultFontName "Microsoft YaHei"
+skinparam defaultFontSize 12
+
+title TOGAF 应用架构图 - Single-SPA 应用组件架构
+
+' 应用接口层
+package "应用接口层 (Public API)" {
+  component [registerApplication] as RegisterAPI
+  component [start] as StartAPI
+  component [navigateToUrl] as NavigateAPI
+  component [getAppStatus] as StatusAPI
+  component [getMountedApps] as MountedAPI
+  component [mountRootParcel] as ParcelAPI
+  component [addErrorHandler] as ErrorHandlerAPI
+}
+
+' 核心应用层
+package "核心应用层 (Core Applications)" {
+  component [应用管理器\napplications/apps.js] as AppManager
+  component [启动管理器\nstart.js] as StartManager
+  component [导航事件管理\nnavigation/navigation-events.js] as NavEvents
+  component [路由协调器\nnavigation/reroute.js] as Rerouter
+}
+
+' 生命周期管理层
+package "生命周期管理层 (Lifecycle Management)" {
+  component [加载模块\nlifecycles/load.js] as LoadModule
+  component [引导模块\nlifecycles/bootstrap.js] as BootstrapModule
+  component [挂载模块\nlifecycles/mount.js] as MountModule
+  component [卸载模块\nlifecycles/unmount.js] as UnmountModule
+  component [卸载模块\nlifecycles/unload.js] as UnloadModule
+  component [更新模块\nlifecycles/update.js] as UpdateModule
+  component [生命周期辅助\nlifecycles/lifecycle.helpers.js] as LifecycleHelpers
+  component [属性辅助\nlifecycles/prop.helpers.js] as PropHelpers
+}
+
+' 应用状态管理层
+package "应用状态管理层 (State Management)" {
+  component [应用状态定义\napplications/app.helpers.js] as AppStateDef
+  component [状态转换逻辑\napplications/apps.js] as StateTransition
+  component [超时管理\napplications/timeouts.js] as TimeoutManager
+  component [错误处理\napplications/app-errors.js] as ErrorHandler
+}
+
+' 功能扩展层
+package "功能扩展层 (Extended Features)" {
+  component [Parcel管理器\nparcels/mount-parcel.js] as ParcelManager
+  component [开发工具\ndevtools/devtools.js] as DevTools
+  component [性能分析器\ndevtools/profiler.js] as Profiler
+  component [性能分析API\ndevtools/profiler-api.js] as ProfilerAPI
+  component [jQuery支持\njquery-support.js] as jQuerySupport
+}
+
+' 工具支撑层
+package "工具支撑层 (Utilities)" {
+  component [运行时环境检测\nutils/runtime-environment.js] as RuntimeEnv
+  component [对象分配工具\nutils/assign.js] as AssignUtil
+  component [查找工具\nutils/find.js] as FindUtil
+}
+
+' 外部依赖层
+package "外部依赖层 (External Dependencies)" {
+  component [浏览器API] as BrowserAPI
+  component [History API] as HistoryAPI
+  component [Custom Events] as CustomEvents
+}
+
+' API到核心应用的关系
+RegisterAPI --> AppManager : 调用
+StartAPI --> StartManager : 调用
+NavigateAPI --> NavEvents : 调用
+StatusAPI --> AppManager : 调用
+MountedAPI --> AppManager : 调用
+ParcelAPI --> ParcelManager : 调用
+ErrorHandlerAPI --> ErrorHandler : 调用
+
+' 核心应用层内部关系
+StartManager --> Rerouter : 触发
+StartManager --> NavEvents : 初始化
+NavEvents --> Rerouter : 触发重路由
+Rerouter --> AppManager : 查询应用变更
+
+' 生命周期管理关系
+Rerouter --> LoadModule : 调用
+Rerouter --> BootstrapModule : 调用
+Rerouter --> MountModule : 调用
+Rerouter --> UnmountModule : 调用
+Rerouter --> UnloadModule : 调用
+AppManager --> StateTransition : 执行
+StateTransition --> LifecycleHelpers : 使用
+
+LoadModule --> PropHelpers : 使用
+BootstrapModule --> PropHelpers : 使用
+MountModule --> PropHelpers : 使用
+UnmountModule --> PropHelpers : 使用
+UpdateModule --> PropHelpers : 使用
+
+' 状态管理关系
+AppManager --> AppStateDef : 使用
+StateTransition --> AppStateDef : 使用
+AppManager --> TimeoutManager : 使用
+Rerouter --> ErrorHandler : 调用
+
+' 功能扩展关系
+ParcelManager --> LoadModule : 复用
+ParcelManager --> BootstrapModule : 复用
+ParcelManager --> MountModule : 复用
+ParcelManager --> UnmountModule : 复用
+DevTools --> AppManager : 监控
+Profiler --> Rerouter : 监控
+
+' 工具支撑关系
+StartManager --> RuntimeEnv : 使用
+AppManager --> AssignUtil : 使用
+AppManager --> FindUtil : 使用
+NavEvents --> RuntimeEnv : 使用
+
+' 外部依赖关系
+NavEvents --> BrowserAPI : 使用
+NavEvents --> HistoryAPI : 使用
+NavEvents --> CustomEvents : 使用
+Rerouter --> BrowserAPI : 使用
+
+note right of AppManager
+  核心职责：
+  - 应用注册和注销
+  - 应用状态管理
+  - 应用变更检测
+  - 应用状态查询
+end note
+
+note right of Rerouter
+  核心职责：
+  - 路由变化检测
+  - 应用生命周期协调
+  - 应用挂载/卸载调度
+  - 事件处理协调
+end note
+
+note bottom of LoadModule
+  生命周期阶段：
+  NOT_LOADED → 
+  LOADING_SOURCE_CODE → 
+  NOT_BOOTSTRAPPED
+end note
+
+note bottom of BootstrapModule
+  生命周期阶段：
+  NOT_BOOTSTRAPPED → 
+  BOOTSTRAPPING → 
+  NOT_MOUNTED
+end note
+
+note bottom of MountModule
+  生命周期阶段：
+  NOT_MOUNTED → 
+  MOUNTING → 
+  MOUNTED
+end note
+
+@enduml
